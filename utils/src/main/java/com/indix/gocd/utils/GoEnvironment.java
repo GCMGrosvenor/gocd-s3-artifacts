@@ -13,7 +13,11 @@ public class GoEnvironment {
     private Map<String, String> environment = new HashMap<String, String>();
 
     public GoEnvironment() {
-        this.environment.putAll(System.getenv());
+        this(System.getenv());
+    }
+
+    public GoEnvironment(Map<String, String> defaultEnvironment) {
+        this.environment.putAll(defaultEnvironment);
     }
 
     public GoEnvironment putAll(Map<String, String> existing) {

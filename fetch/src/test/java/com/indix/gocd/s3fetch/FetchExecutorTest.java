@@ -4,6 +4,7 @@ import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.indix.gocd.utils.AWSCredentialsFactory;
+import com.indix.gocd.utils.GoEnvironment;
 import com.indix.gocd.utils.mocks.MockTaskExecutionContext;
 import com.indix.gocd.utils.store.S3ArtifactStore;
 import com.indix.gocd.utils.utils.Maps;
@@ -28,6 +29,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.Map;
 
 import static com.indix.gocd.utils.Constants.*;
@@ -82,8 +84,12 @@ public class FetchExecutorTest {
     @Test
     public void shouldBeFailureIfFetchConfigNotValid() {
         Map<String, String> mockVariables = mockEnvironmentVariables.remove(AWS_ACCESS_KEY_ID).build();
+        TaskExecutionContext mockContext = mockContext(mockVariables);
+        FetchConfig fetchConfig = spy(new FetchConfig(config, mockContext, new GoEnvironment(new HashMap<String,String>())));
+        doReturn(fetchConfig).when(fetchExecutor).getFetchConfig(any(TaskConfig.class), any(TaskExecutionContext.class));
 
-        ExecutionResult executionResult = fetchExecutor.execute(config, mockContext(mockVariables));
+        ExecutionResult executionResult = fetchExecutor.execute(config, mockContext);
+
         assertFalse(executionResult.isSuccessful());
         assertThat(executionResult.getMessagesForDisplay(), is("[AWS_ACCESS_KEY_ID environment variable not present]"));
     }
