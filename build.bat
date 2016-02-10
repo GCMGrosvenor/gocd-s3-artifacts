@@ -20,10 +20,12 @@ echo ERROR: cannot find java
 exit /b 1
 
 :javagood
+cd ..\Build
 call sbt clean editsource:edit assembly
 IF %ERRORLEVEL% NEQ 0 exit /b 1
 
+cd ..
 md Deploy
-copy .\fetch\target\s3fetch-*.jar .\Deploy
-copy .\material\target\s3material-*.jar .\Deploy
-copy .\publish\target\s3publish-*.jar .\Deploy
+copy .\Build\fetch\target\s3fetch-*.jar .\Deploy
+copy .\Build\material\target\s3material-*.jar .\Deploy
+copy .\Build\publish\target\s3publish-*.jar .\Deploy
