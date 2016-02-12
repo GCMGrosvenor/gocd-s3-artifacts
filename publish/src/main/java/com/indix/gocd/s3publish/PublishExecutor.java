@@ -6,6 +6,7 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 
+import com.amazonaws.services.s3.model.StorageClass;
 import com.amazonaws.util.json.JSONException;
 import com.indix.gocd.utils.GoEnvironment;
 import com.indix.gocd.utils.utils.Functions;
@@ -48,8 +49,7 @@ public class PublishExecutor implements TaskExecutor {
     public ExecutionResult execute(TaskConfig config, final TaskExecutionContext context) {
         final GoEnvironment env = getGoEnvironment();
         env.putAll(context.environment().asMap());
-
-        if (env.isAbsent(AWS_USE_IAM_ROLE)) {
+        if (!env.hasAWSUseIamRole()) {
             if (env.isAbsent(AWS_ACCESS_KEY_ID)) return envNotFound(AWS_ACCESS_KEY_ID);
             if (env.isAbsent(AWS_SECRET_ACCESS_KEY)) return envNotFound(AWS_SECRET_ACCESS_KEY);
         }
@@ -68,6 +68,7 @@ public class PublishExecutor implements TaskExecutor {
         if (env.has(AWS_KMS_KEY_ID))
             kmsKey = env.get(AWS_KMS_KEY_ID);
         final S3ArtifactStore store = new S3ArtifactStore(s3Client, bucket, kmsKey);
+        store.setStorageClass(env.getOrElse(AWS_STORAGE_CLASS, STORAGE_CLASS_STANDARD));
 
         final String destinationPrefix = getDestinationPrefix(config, env);
 
@@ -179,9 +180,9 @@ public class PublishExecutor implements TaskExecutor {
         return new GoEnvironment();
     }
 
-    public AmazonS3Client s3Client(GoEnvironment env){
+    public AmazonS3Client s3Client(GoEnvironment env) {
         AmazonS3Client client = null;
-        if (env.has(AWS_USE_IAM_ROLE)) {
+        if (env.hasAWSUseIamRole()) {
             client = new AmazonS3Client(new InstanceProfileCredentialsProvider());
         } else {
             client = new AmazonS3Client(new BasicAWSCredentials(env.get(AWS_ACCESS_KEY_ID), env.get(AWS_SECRET_ACCESS_KEY)));
