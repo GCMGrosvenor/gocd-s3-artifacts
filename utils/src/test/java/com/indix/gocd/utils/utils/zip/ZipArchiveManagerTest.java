@@ -87,22 +87,17 @@ public class ZipArchiveManagerTest {
             sut.compressDirectory(folderToCompress.getRoot().toString(),archivePath);
 
             ZipFile zipFile = new ZipFile(archivePath);
-            Enumeration zipFileEntries = zipFile.entries();
-            assertTrue("Zip file has at least one entry", zipFileEntries.hasMoreElements());
-            ZipEntry zipEntry = (ZipEntry)zipFileEntries.nextElement();
-            assertEquals("First zip entry is called myfile.txt", "myfile.txt", zipEntry.getName());
 
-            assertTrue("Zip file has one more entry for subfolder", zipFileEntries.hasMoreElements());
-            zipEntry = (ZipEntry)zipFileEntries.nextElement();
-            assertTrue("Second zip entry is a directory", zipEntry.isDirectory());
-            assertEquals("Second zip entry is called sampleDir", "sampleDir/", zipEntry.getName());
+            assertEquals("Zip file has 3 entries", 3, zipFile.size());
 
-            assertTrue("Zip file has one more entry for file inside subfolder", zipFileEntries.hasMoreElements());
-            zipEntry = (ZipEntry)zipFileEntries.nextElement();
+            assertTrue("Zip file has an entry called myfile.txt", zipFile.getEntry("myfile.txt") != null);
 
-            assertTrue("Last zip entry is called myfileInSubfolder.txt", zipEntry.getName().matches("sampleDir[/\\\\]myfileInSubfolder.txt"));
+            ZipEntry subfolderInZip = zipFile.getEntry("sampleDir/");
+            assertTrue("Zip file has an entry for subfolder", subfolderInZip != null && subfolderInZip.isDirectory());
 
-            assertFalse("Zip file has no more entries", zipFileEntries.hasMoreElements());
+            assertTrue("Zip file has one more entry for file inside subfolder",
+                    zipFile.getEntry("sampleDir" + File.separator + "myfileInSubfolder.txt") != null);
+
             zipFile.close();
 
         } catch (IOException ex) {
